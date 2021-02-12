@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:PDFCompressor/view_pdf.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
@@ -36,6 +37,7 @@ class _HomePageState extends State<HomePage> {
   String _filepath = '';
   String _message = '';
   bool _processing = false;
+  bool _show = false;
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   @override
@@ -89,7 +91,7 @@ class _HomePageState extends State<HomePage> {
     if (await Permission.storage.request().isGranted) {
       try {
         print('Starting Compression at lvl : $_quality');
-        const String url = 'http://e7da9a6cdf19.ngrok.io/upload';
+        const String url = 'https://calm-lake-61286.herokuapp.com/upload';
         var request = http.MultipartRequest('POST', Uri.parse(url));
         request.fields['quality'] = _quality.toString();
         request.files.add(await http.MultipartFile.fromPath('file', _filepath));
@@ -123,118 +125,145 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xffb282a36),
-      body: Container(
-        width: double.infinity,
-        child: _processing
-            ? Center(
-                child: CircularProgressIndicator(),
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'PDF Compressor',
-                    style: TextStyle(
-                      color: Color(0xffbf8f8f2),
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 22),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _filepath == ''
-                            ? 'No file Selected!'
-                            : (_filepath.split('/').last.length > 25
-                                ? '${_filepath.split('/').last.substring(0, 25)}...'
-                                : _filepath.split('/').last),
-                        style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          color: Color(0xffbf8f8f2),
+      body: _show
+          ? ViewPDF()
+          : Container(
+              width: double.infinity,
+              child: _processing
+                  ? Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'PDF Compressor',
+                          style: TextStyle(
+                            color: Color(0xffbf8f8f2),
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 12),
-                      RaisedButton(
-                        onPressed: () async {
-                          await handlePick();
-                        },
-                        color: Color(0xffbff79c6),
-                        child: Text(
-                          'Select File',
+                        SizedBox(height: 22),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _filepath == ''
+                                  ? 'No file Selected!'
+                                  : (_filepath.split('/').last.length > 25
+                                      ? '${_filepath.split('/').last.substring(0, 25)}...'
+                                      : _filepath.split('/').last),
+                              style: TextStyle(
+                                fontStyle: FontStyle.italic,
+                                color: Color(0xffbf8f8f2),
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            RaisedButton(
+                              onPressed: () async {
+                                await handlePick();
+                              },
+                              color: Color(0xffbff79c6),
+                              child: Text(
+                                'Select File',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xffbf8f8f2),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 22),
+                        Text(
+                          'Compression Level : $_quality',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Color(0xffbf8f8f2),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 22),
-                  Text(
-                    'Compression Level : $_quality',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xffbf8f8f2),
-                    ),
-                  ),
-                  Slider(
-                    value: _quality.toDouble() > 4 ? 2.0 : _quality.toDouble(),
-                    divisions: 4,
-                    min: 0,
-                    max: 4,
-                    onChanged: (value) {
-                      setState(() {
-                        _quality = value.toInt();
-                      });
-                    },
-                  ),
-                  SizedBox(height: 22),
-                  RaisedButton(
-                    onPressed: _filepath == ''
-                        ? null
-                        : () async {
-                            await handleCompress();
+                        Slider(
+                          value: _quality.toDouble() > 4
+                              ? 2.0
+                              : _quality.toDouble(),
+                          divisions: 4,
+                          min: 0,
+                          max: 4,
+                          onChanged: (value) {
+                            setState(() {
+                              _quality = value.toInt();
+                            });
                           },
-                    color: Color(0xffb50fa7b),
-                    disabledColor: Color(0xffbf8f8f2),
-                    disabledTextColor: Colors.grey,
-                    child: Text(
-                      'Compress',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color:
-                            _filepath == '' ? Colors.grey : Color(0xffbf8f8f2),
-                      ),
+                        ),
+                        SizedBox(height: 22),
+                        RaisedButton(
+                          onPressed: _filepath == ''
+                              ? null
+                              : () async {
+                                  await handleCompress();
+                                },
+                          color: Color(0xffb50fa7b),
+                          disabledColor: Color(0xffbf8f8f2),
+                          disabledTextColor: Colors.grey,
+                          child: Text(
+                            'Compress',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: _filepath == ''
+                                  ? Colors.grey
+                                  : Color(0xffbf8f8f2),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 22),
+                        _message != ''
+                            ? Text(_message,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xffbf8f8f2),
+                                ))
+                            : SizedBox(),
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 22),
-                  _message != ''
-                      ? Text(_message,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xffbf8f8f2),
-                          ))
-                      : SizedBox(),
-                ],
-              ),
-      ),
+            ),
+      resizeToAvoidBottomInset: false,
       persistentFooterButtons: [
         Container(
           height: 35,
           width: MediaQuery.of(context).size.width,
-          child: GestureDetector(
-            onTap: () async {
-              const String url = 'https://github.com/real4suraj2/PDFCompressor';
-              if (await canLaunch(url)) await launch(url);
-            },
-            child: Image.asset(
-              'assets/git.png',
-              width: 30,
-              height: 30,
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: () async {
+                  const String url =
+                      'https://github.com/real4suraj2/PDFCompressor';
+                  if (await canLaunch(url)) await launch(url);
+                },
+                child: Image.asset(
+                  'assets/git.png',
+                  width: 30,
+                  height: 30,
+                ),
+              ),
+              SizedBox(width: 12),
+              FlatButton(
+                onPressed: () {
+                  setState(() {
+                    _show = !_show;
+                  });
+                },
+                child: Text(
+                  _show ? 'Use PDF Compressor' : 'View PDF Online',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xffbf8f8f2),
+                      decoration: TextDecoration.underline),
+                ),
+              ),
+            ],
           ),
         ),
       ],
