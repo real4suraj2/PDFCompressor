@@ -1,4 +1,5 @@
 import 'package:PDFCompressor/pdf.dart';
+import 'package:PDFCompressor/show_ad.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -61,18 +62,15 @@ class _ViewPDFState extends State<ViewPDF> {
                     SizedBox(width: 12),
                     RaisedButton(
                       onPressed: () {
-                        // Navigator.pushReplacement(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //     builder: (BuildContext context) =>
-                        //         Pdf(_linkController.text),
-                        //   ),
-                        // );
                         if (!_show)
-                          SystemChannels.textInput
-                              .invokeMethod('TextInput.hide');
-                        else
-                          _linkController.text = '';
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (BuildContext context) => ShowAd(),
+                            ),
+                          );
+                        SystemChannels.textInput.invokeMethod('TextInput.hide');
+                        if (_show) _linkController.text = '';
                         setState(() {
                           _show = !_show;
                         });
